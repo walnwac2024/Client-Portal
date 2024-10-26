@@ -47,8 +47,11 @@ export default function SignupPage() {
 
     return (
         <section className="relative py-20 2xl:py-40 bg-gray-800 overflow-hidden">
-          <Image className="hidden lg:block absolute inset-0 mt-32" src="zospace-assets/lines/line-mountain.svg" alt="" />
-          <Image className="hidden lg:block absolute inset-y-0 right-0 -mr-40 -mt-32" src="zospace-assets/lines/line-right-long.svg" alt="" />
+          <Image className="hidden lg:block absolute inset-0 mt-32" src="zospace-assets/lines/line-mountain.svg" alt=""   width={500}  // Adjust width as needed
+  height={500}/>
+          <Image className="hidden lg:block absolute inset-y-0 right-0 -mr-40 -mt-32" src="zospace-assets/lines/line-right-long.svg" alt="" 
+            width={500}  // Adjust width as needed
+            height={500}/>
           <div className="relative container px-4 mx-auto">
             <div className="max-w-5xl mx-auto">
               <div className="flex flex-wrap items-center -mx-4">

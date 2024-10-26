@@ -22,17 +22,25 @@ export default function LoginPage() {
 
 
     const onLogin = async () => {
+        // console.log("the response at the login is")
+        // const response = await axios.post("/api/users/login", user);
+        // return;
         try {
-            setLoading(true);
+            // setLoading(true);
+            
             const response = await axios.post("/api/users/login", user);
-            console.log("Login success", response.data);
-            toast.success("Login success");
-            router.push("/profile");
+                alert(response.data.message)
+                console.log("Login success", response.data);
+                toast.success("Login success");
+                router.push("/profile");
+            
+            
         } catch (error:any) {
             console.log("Login failed", error.message);
             alert(error)
             toast.error(error.message);
-        } finally{
+        } 
+        finally{
         setLoading(false);
         }
     }
@@ -47,10 +55,9 @@ export default function LoginPage() {
 
     return (
         <section className="relative py-20 2xl:py-40 bg-gray-800 overflow-hidden">
-          <Image className="hidden lg:block absolute inset-0 mt-32" src="zospace-assets/lines/line-mountain.svg" alt=""   width={500}  
-  height={500}/>
-          <Image className="hidden lg:block absolute inset-y-0 right-0 -mr-40 -mt-32" src="zospace-assets/lines/line-right-long.svg" alt=""   width={500}  
-  height={500}/>
+       <img className="hidden lg:block absolute inset-0 mt-32" src="zospace-assets/lines/line-mountain.svg" alt="" />
+       <img className="hidden lg:block absolute inset-y-0 right-0 -mr-40 -mt-32" src="zospace-assets/lines/line-right-long.svg" alt="" />
+
           <div className="relative container px-4 mx-auto">
             <div className="max-w-5xl mx-auto">
               <div className="flex flex-wrap items-center -mx-4">

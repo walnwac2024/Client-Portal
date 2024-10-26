@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
 
         // Hash the incoming password with MD5 and compare with stored password
         const hashedIncomingPassword = md5(password);
+  
         if (user.password !== hashedIncomingPassword) {
             return NextResponse.json({ error: "Invalid password" }, { status: 400 });
         }
@@ -35,11 +36,12 @@ export async function POST(request: NextRequest) {
             id: user.id,
             username: user.username,
             email: user.email,
+            isAdmin:user.isAdmin,
         };
       console.log("the token data is:",tokenData)
         // Generate JWT token
-        const token = jwt.sign(tokenData, process.env.JWT_SECRET!, { expiresIn: "1d" });
-
+        const token = jwt.sign(tokenData, process.env.JWT_SECRET! || "thisisme", { expiresIn: "1d" });
+        
         // Create and set the token in cookies
         const response = NextResponse.json({
             message: "Login successful",
@@ -47,9 +49,12 @@ export async function POST(request: NextRequest) {
         });
         response.cookies.set("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "development",
+            secure: false,
+            path: "/",
+           maxAge: 24 * 60 * 60,//process.env.NODE_ENV === "development",
+           
         });
-        console.log("the response is:",response)
+        // console.log("the response is:",response)
         return response;
 
     } catch (error: any) {

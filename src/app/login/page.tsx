@@ -29,6 +29,7 @@ export default function LoginPage() {
             router.push("/profile");
         } catch (error:any) {
             console.log("Login failed", error.message);
+            alert(error)
             toast.error(error.message);
         } finally{
         setLoading(false);
@@ -44,33 +45,75 @@ export default function LoginPage() {
     }, [user]);
 
     return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-        <h1>{loading ? "Processing" : "Login"}</h1>
-        <hr />
-        
-        <label htmlFor="email">email</label>
-        <input 
-        className="p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600 text-black"
-            id="email"
-            type="text"
-            value={user.email}
-            onChange={(e) => setUser({...user, email: e.target.value})}
-            placeholder="email"
-            />
-        <label htmlFor="password">password</label>
-        <input 
-        className="p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600 text-black"
-            id="password"
-            type="password"
-            value={user.password}
-            onChange={(e) => setUser({...user, password: e.target.value})}
-            placeholder="password"
-            />
-            <button
-            onClick={onLogin}
-            className="p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600">Login here</button>
-            <Link href="/signup">Visit Signup page</Link>
-        </div>
-    )
+        <section className="relative py-20 2xl:py-40 bg-gray-800 overflow-hidden">
+          <img className="hidden lg:block absolute inset-0 mt-32" src="zospace-assets/lines/line-mountain.svg" alt="" />
+          <img className="hidden lg:block absolute inset-y-0 right-0 -mr-40 -mt-32" src="zospace-assets/lines/line-right-long.svg" alt="" />
+          <div className="relative container px-4 mx-auto">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex flex-wrap items-center -mx-4">
+                <div className="w-full lg:w-1/2 px-4 mb-16 lg:mb-0">
+                  <div className="max-w-md">
+                    <span className="text-lg text-blue-400 font-bold">Login to Your Account</span>
+                    <h2 className="mt-8 mb-12 text-5xl font-bold font-heading text-white">Welcome back! Please log in to continue.</h2>
+                    <p className="text-lg text-gray-200">
+                      <span>Access your personalized dashboard by logging in.</span>
+                      <span className="text-white">Stay connected, stay productive.</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full lg:w-1/2 px-4">
+                  <div className="px-6 lg:px-20 py-12 lg:py-24 bg-gray-600 rounded-lg">
+                    <form>
+                      <h3 className="mb-10 text-2xl text-white font-bold font-heading">Login</h3>
+                      
+                      <div className="flex items-center pl-6 mb-3 bg-white rounded-full">
+                        <span className="inline-block pr-3 py-2 border-r border-gray-50">
+                          {/* SVG for icon */}
+                        </span>
+                        <input 
+                          className="w-full pl-4 pr-6 py-4 font-bold placeholder-gray-900 rounded-r-full focus:outline-none" 
+                          type="text" 
+                          id="email" 
+                          placeholder="Email" 
+                          value={user.email} 
+                          onChange={(e) => setUser({ ...user, email: e.target.value })}
+                        />
+                      </div>
+      
+                      <div className="flex items-center pl-6 mb-6 bg-white rounded-full">
+                        <span className="inline-block pr-3 py-2 border-r border-gray-50">
+                          {/* SVG for icon */}
+                        </span>
+                        <input 
+                          className="w-full pl-4 pr-6 py-4 font-bold placeholder-gray-900 rounded-r-full focus:outline-none" 
+                          type="password" 
+                          id="password" 
+                          placeholder="Password" 
+                          value={user.password} 
+                          onChange={(e) => setUser({ ...user, password: e.target.value })}
+                        />
+                      </div>
+      
+                      <button
+                        onClick={onLogin}
+                        className="w-full py-4 mb-4 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600 transition duration-200"
+                        disabled={buttonDisabled}
+                      >
+                        {loading ? "Processing" : "Login"}
+                      </button>
+      
+                      <div className="text-center mt-4">
+                        Don't have on account?
+                        <Link href="/signup" className="text-blue-400 hover:text-blue-600">SignUp</Link>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+      
 
 }

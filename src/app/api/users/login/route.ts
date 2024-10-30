@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     try {
         const reqBody = await request.json();
         const { email, password } = reqBody;
-
+       
         console.log("Received request body:", reqBody);
 
         const connection = getConnection();
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
            maxAge: 24 * 60 * 60,//process.env.NODE_ENV === "development",
            
         });
-        // console.log("the response is:",response)
+        console.log("the response is:",response)
         return response;
 
     } catch (error: any) {

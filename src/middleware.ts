@@ -37,8 +37,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-    const path = request.nextUrl.pathname;
-
+    const path =  request.nextUrl.pathname;
+    // console.log("the pthe at the start is:",request)
     // Define public paths
     const isPublicPath = path === '/login' || path === '/signup';
 
@@ -70,6 +70,6 @@ export const config = {
         '/profile',      // Protected profile path
         '/login',        // Public login path
         '/signup',       // Public signup path
-        '/verifyemail',  // Email verification path
+     
     ],
 };

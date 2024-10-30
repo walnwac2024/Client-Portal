@@ -5,7 +5,7 @@ import {useRouter} from "next/navigation";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { NextResponse } from 'next/server';
-import Image from "next/image";
+// import Image from "next/image";
 
 
 
@@ -47,8 +47,8 @@ export default function SignupPage() {
 
     return (
         <section className="relative py-20 2xl:py-40 bg-gray-800 overflow-hidden">
-          <img className="hidden lg:block absolute inset-0 mt-32" src="zospace-assets/lines/line-mountain.svg" alt="" />
-          <img className="hidden lg:block absolute inset-y-0 right-0 -mr-40 -mt-32" src="zospace-assets/lines/line-right-long.svg" alt="" />
+          {/* <img className="hidden lg:block absolute inset-0 mt-32" src="zospace-assets/lines/line-mountain.svg" alt="" />
+          <img className="hidden lg:block absolute inset-y-0 right-0 -mr-40 -mt-32" src="zospace-assets/lines/line-right-long.svg" alt="" /> */}
           <div className="relative container px-4 mx-auto">
             <div className="max-w-5xl mx-auto">
               <div className="flex flex-wrap items-center -mx-4">

@@ -2,6 +2,8 @@
 import mysql from 'mysql2';
 
 let connection:any;
+const port:number = process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306; // Default port if not provided
+
 
 export function connect() {
     if (!connection) {
@@ -10,7 +12,7 @@ export function connect() {
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD || '', // Empty if no password
             database: process.env.DB_NAME,
-            port: process.env.DB_PORT || 3306, // Default MySQL port
+            port, // Default MySQL port
         });
 
         // Connect to the database

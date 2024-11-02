@@ -22,11 +22,11 @@ export async function GET(req, res) {
 
         // If admin, fetch all data; otherwise, fetch user-specific data
         if (user.isAdmin) {
-            query = "SELECT * FROM users"; // Fetch all data for admin
+            query = "SELECT * FROM users where status='Y'"; // Fetch all data for admin
             params = [];
         } else {
             const username = user.username; // Get the username from token
-            query = "SELECT * FROM users WHERE assigned_to = ?"; // Fetch data based on assigned_to
+            query = "SELECT * FROM users WHERE assigned_to = ? AND status='Y'"; // Fetch data based on assigned_to
             params = [username];
         }
 

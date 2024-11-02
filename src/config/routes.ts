@@ -1,4 +1,7 @@
 export const routes = {
 
-    addClient:'/AddNewClient'
+    addClient:'/AddNewClient',
+    viewClient:'/clientdetails/view',
+    editClient:'/clientdetails/edit',
+
 }

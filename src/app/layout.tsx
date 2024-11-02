@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import './globals.css'
 import { Inter } from 'next/font/google'
 import toast, { Toaster } from 'react-hot-toast';
@@ -15,12 +16,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Head>
+        {/* Manifest file */}
+        <link rel="manifest" href="/manifest.json" />
+        {/* Meta tags */}
+        <meta name="theme-color" content="#000000" />
+      </Head>
       <body className={inter.className}>
-      <div className="bg-gray-900 w-full">
-        <Toaster/>
-        {children}
+        <div className="bg-gray-900 w-full">
+          <Toaster />
+          {children}
         </div>
-        </body>
+      </body>
     </html>
   )
 }

@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 
 export default function LoginPage() {
     const router = useRouter();
-    const [user, setUser] = React.useState({
+    const [user, setUser] = React.useState<any>({
         email: "",
         password: "",
        
@@ -21,22 +21,26 @@ export default function LoginPage() {
     const [loading, setLoading] = React.useState(false);
 
 
-    const onLogin = async () => {
+    const onLogin = async (user) => {
         
         try {
             // setLoading(true);
             
             const response = await axios.post("/api/users/login", user);
-            alert(response.data)
+            // alert(response.data)
+            console.log("the dada from the back end is:",response.data)
+            toast.success("Login Successfully")
                 console.log("Login success", response.data);
                 // toast.success("Login success");
-                router.push("/profile");
+              router.push("/");
             
             
         } catch (error:any) {
-            console.log("Login failed", error.message);
-            alert(error)
-            toast.error(error.message);
+            console.log("Login failed", error);
+            toast.error(error.response.data.error)
+            alert(error.response.data.error)
+            
+            
         } 
         finally{
         setLoading(false);
@@ -103,7 +107,7 @@ export default function LoginPage() {
                       </div>
       
                       <button
-                        onClick={onLogin}
+                        onClick={()=>onLogin(user)}
                         className="w-full py-4 mb-4 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600 transition duration-200"
                         disabled={buttonDisabled}
                       >

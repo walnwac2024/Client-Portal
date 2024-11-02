@@ -1,3 +1,74 @@
+// import { connect, getConnection } from "@/dbConfig/dbConfig";
+// import { NextRequest, NextResponse } from "next/server";
+// import md5 from "md5"; // Import MD5
+// import jwt from "jsonwebtoken";
+
+// // Ensure the connection is established
+// connect();
+
+// export async function POST(request: NextRequest) {
+//     const startTime = Date.now(); // Start time for logging
+
+//     try {
+//         const reqBody = await request.json();
+//         const { email, password } = reqBody;
+
+//         console.log("Received request body:", reqBody);
+
+//         const connection = getConnection();
+
+//         // Check if user exists
+        
+//         // Adjust your SQL query to select only the necessary fields
+// const [rows] = await connection.promise().query(
+//     "SELECT id, username, password, isAdmin FROM users WHERE email = ? AND status='Y'",
+//     [email]
+// );
+
+//         console.log("the eow is:",rows)
+//         if (rows.length === 0) {
+//             return NextResponse.json({ error: "User does not exist" }, { status: 400 });
+//         }
+//         const user = rows[0];
+//         console.log("the user is:",user)
+
+//         const hashedIncomingPassword =await md5(password);
+// console.log("the hashed paswor is:",hashedIncomingPassword)
+//         if (user.password !== hashedIncomingPassword) {
+//             return NextResponse.json({ error: "Invalid password" }, { status: 400 });
+//         }
+
+//         const tokenData = {
+//             id: user.id,
+//             username: user.username,
+//             email: user.email,
+//             isAdmin: user.isAdmin,
+//         };
+
+//         const token = jwt.sign(tokenData, process.env.JWT_SECRET || "thisisme", { expiresIn: "1d" });
+//         console.log("the token is",token)
+//         const response = NextResponse.json({
+//             message: "Login successful",
+//             success: true,
+//         });
+//         console.log("the response is:",response)
+//         response.cookies.set("token", token, {
+//             httpOnly: true,
+//             secure: false,
+//             path: "/",
+//             maxAge: 24 * 60 * 60,
+//         });
+
+     
+
+//         return response;
+
+//     } catch (error: any) {
+//         console.log("the error is:",error)
+//         return NextResponse.json({ error: error.message }, { status: 500 });
+//     }
+// }
+
 // pages/api/login.js
 import { connect, getConnection } from "@/dbConfig/dbConfig";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,7 +88,7 @@ export async function POST(request: NextRequest) {
         const connection = getConnection();
 
         // Check if user exists
-        const [rows] = await connection.promise().query("SELECT * FROM users WHERE email = ?", [email]);
+        const [rows] = await connection.promise().query("SELECT * FROM users WHERE email = ? AND status='Y'", [email]);
         if (rows.length === 0) {
             return NextResponse.json({ error: "User does not exist" }, { status: 400 });
         }
@@ -38,7 +109,7 @@ export async function POST(request: NextRequest) {
             email: user.email,
             isAdmin:user.isAdmin,
         };
-      console.log("the token data is:",tokenData)
+    //   console.log("the token data is:",tokenData)
         // Generate JWT token
         const token = jwt.sign(tokenData, process.env.JWT_SECRET! || "thisisme", { expiresIn: "1d" });
         
@@ -54,7 +125,7 @@ export async function POST(request: NextRequest) {
            maxAge: 24 * 60 * 60,//process.env.NODE_ENV === "development",
            
         });
-        console.log("the response is:",response)
+        // console.log("the response is:",response)
         return response;
 
     } catch (error: any) {

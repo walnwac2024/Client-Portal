@@ -7,16 +7,16 @@ import axios from "axios";
 import {useRouter} from "next/navigation";
 
 import { toast } from "react-hot-toast";
-export default function AddClientForm() {
+export default function AdduserForm() {
   const router=useRouter()
   const [formData, setFormData] = useState<any>({
     firstname: "",
     lastname: "",
-    username: "",
-    password: "",
+    cnic: "",
     email: "",
     phone: "",
-    address: ""
+    office_name: "",
+    office_address: ""
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,7 +32,7 @@ export default function AddClientForm() {
     // Send formData to the backend API
     try {
       
-      const response:any = await axios.post("/api/users/addnewclient",formData);
+      const response:any = await axios.post("/api/users/addnewuser",formData);
      
         console.log("Client added successfully");
         toast.success("Client added successfully!");
@@ -49,9 +49,9 @@ export default function AddClientForm() {
 
   return (
     <div className="max-w-lg w-full mx-auto rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-gray-100">
-      <h2 className="font-bold text-xl text-black">Add New Client</h2>
+      <h2 className="font-bold text-xl text-black">Add New User</h2>
       <p className="text-black text-sm max-w-sm mt-2">
-        Please provide the information for the new client.
+        Please provide the information for the new user.
       </p>
 
       <form className="my-8" onSubmit={handleSubmit}>
@@ -80,13 +80,13 @@ export default function AddClientForm() {
           </LabelInputContainer>
         </div>
         <LabelInputContainer className="mb-4">
-          <Label htmlFor="username" className="text-black">Username</Label>
+          <Label htmlFor="cnic" className="text-black">CNIC</Label>
           <Input
-            id="username"
-            placeholder="example123"
+            id="cnic"
+            placeholder="XXXXX-XXXXXXX-X"
             type="text"
             className="bg-white text-black"
-            value={formData.username}
+            value={formData.cnic}
             onChange={handleChange}
             required
           />
@@ -103,18 +103,7 @@ export default function AddClientForm() {
             required
           />
         </LabelInputContainer>
-        <LabelInputContainer className="mb-4">
-          <Label htmlFor="password" className="text-black">Password</Label>
-          <Input
-            id="password"
-            placeholder="********"
-            type="password" // Use 'password' type for hiding input
-            className="bg-white text-black"
-            value={formData.password} // Make sure to manage password in the state
-            onChange={handleChange}
-            required
-          />
-        </LabelInputContainer>
+       
 
         <LabelInputContainer className="mb-4">
           <Label htmlFor="phone" className="text-black">Phone Number</Label>
@@ -128,14 +117,26 @@ export default function AddClientForm() {
             required
           />
         </LabelInputContainer>
-        <LabelInputContainer className="mb-8">
-          <Label htmlFor="address" className="text-black">Address</Label>
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="office_name" className="text-black">Office Name</Label>
           <Input
-            id="address"
+            id="office_name"
+            placeholder="Gulberg Green Islamabad"
+            type="text" // Use 'password' type for hiding input
+            className="bg-white text-black"
+            value={formData.office_name} // Make sure to manage password in the state
+            onChange={handleChange}
+            
+          />
+        </LabelInputContainer>
+        <LabelInputContainer className="mb-8">
+          <Label htmlFor="office_address" className="text-black">Office Address</Label>
+          <Input
+            id="office_address"
             placeholder="GulBerg Green Islamabad"
             type="text"
             className="bg-white text-black"
-            value={formData.address}
+            value={formData.office_address}
             onChange={handleChange}
           />
         </LabelInputContainer>
@@ -145,7 +146,7 @@ export default function AddClientForm() {
           type="submit"
           
         >
-          Save User &rarr;
+          Save Client &rarr;
           
         </button>
       </form>

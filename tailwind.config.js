@@ -1,5 +1,4 @@
 const defaultTheme = require("tailwindcss/defaultTheme");
- 
 const colors = require("tailwindcss/colors");
 const {
   default: flattenColorPalette,
@@ -14,6 +13,14 @@ module.exports = {
   ],
   darkMode: "class",
   theme: {
+    screens: {
+      'xs': '480px',  // Extra small devices (custom)
+      'sm': '640px',  // Small devices
+      'md': '768px',  // Medium devices
+      'lg': '1024px', // Large devices
+      'xl': '1280px', // Extra large devices
+      '2xl': '1536px' // 2X large devices
+    },
     extend: {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -37,10 +44,19 @@ module.exports = {
         },
       },
     },
+    
   },
-  plugins: [addVariablesForColors],
+  plugins: [addVariablesForColors,
+   
+    function ({ matchUtilities, theme }) {
+      matchUtilities(
+      
+        { values: flattenColorPalette(theme("backgroundColor")), type: "color" }
+      );
+    },
+  ],
 }
-function addVariablesForColors({ addBase, theme }: any) {
+function addVariablesForColors({ addBase, theme }) {
   let allColors = flattenColorPalette(theme("colors"));
   let newVars = Object.fromEntries(
     Object.entries(allColors).map(([key, val]) => [`--${key}`, val])

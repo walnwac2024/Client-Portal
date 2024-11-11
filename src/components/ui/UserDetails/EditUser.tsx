@@ -6,14 +6,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-export default function EditClientForm() {
+export default function EditUser() {
   const [formData, setFormData] = useState({
     firstname: "",
     lastname: "",
-    username: "",
+    cnic: "",
     email: "",
     phone: "",
-    address: "",
+    office_name: "",
+    office_address: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function EditClientForm() {
 
   const handleSave = async () => {
     try {
-      const response = await axios.put("/api/users/updateclient", formData);
+      const response = await axios.put("/api/users/updateuser", formData);
       if (response.status === 200) {
         toast.success(response.data.message)
         setIsEditing(false); // Disable editing after saving
@@ -82,9 +83,9 @@ export default function EditClientForm() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <EditableField
-            label="Username"
-            name="username"
-            value={formData.username}
+            label="CNIC"
+            name="cnic"
+            value={formData.cnic}
             isEditing={isEditing}
             onChange={handleInputChange}
           />
@@ -107,9 +108,16 @@ export default function EditClientForm() {
             onChange={handleInputChange}
           />
           <EditableField
-            label="Address"
-            name="address"
-            value={formData.address}
+            label="Office Name"
+            name="office_name"
+            value={formData.office_name}
+            isEditing={isEditing}
+            onChange={handleInputChange}
+          />
+          <EditableField
+            label="Office Address"
+            name="office_address"
+            value={formData.office_address}
             isEditing={isEditing}
             onChange={handleInputChange}
           />

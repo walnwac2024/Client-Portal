@@ -33,11 +33,11 @@ export async function PUT(req, res) {
         const username1 = userRow[0].username;
 
         // Parse the request data
-        let { id, username, firstname, lastname, email, phone, address, password } = await req.json();
-       
+        let { id, firstname, lastname, email, cnic, phone, office_name,office_address } = await req.json();
+       console.log("the phone numbr from the front is:",phone)
         // Check if the client exists
         const [existingClient] = await connection.promise().query(
-            "SELECT * FROM users WHERE id = ?",
+            "SELECT * FROM client WHERE id = ?",
             [id]
         );
 
@@ -49,10 +49,7 @@ export async function PUT(req, res) {
         const updates = [];
         const values = [];
 
-        if (username) {
-            updates.push("username = ?");
-            values.push(username);
-        }
+        
         if (firstname) {
             updates.push("firstname = ?");
             values.push(firstname);
@@ -60,6 +57,10 @@ export async function PUT(req, res) {
         if (lastname) {
             updates.push("lastname = ?");
             values.push(lastname);
+        }
+        if (cnic) {
+            updates.push("cnic = ?");
+            values.push(cnic);
         }
         if (email) {
             updates.push("email = ?");
@@ -69,20 +70,20 @@ export async function PUT(req, res) {
             updates.push("phone = ?");
             values.push(phone);
         }
-        if (address) {
-            updates.push("address = ?");
-            values.push(address);
+        if (office_address) {
+            updates.push("office_address = ?");
+            values.push(office_address);
         }
-        if (password) {
-            updates.push("password = ?");
-            values.push(md5(password));
+        if (office_name) {
+            updates.push("office_name = ?");
+            values.push(office_name);
         }
 
         // If there are fields to update, execute the query
         if (updates.length > 0) {
             values.push(id);
             await connection.promise().query(
-                `UPDATE users SET ${updates.join(", ")} WHERE id = ?`,
+                `UPDATE client SET ${updates.join(", ")} WHERE id = ?`,
                 values
             );
         }

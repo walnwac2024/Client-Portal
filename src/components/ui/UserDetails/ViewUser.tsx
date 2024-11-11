@@ -4,14 +4,15 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ViewClientForm() {
+export default function ViewUserForm() {
   const [clientData, setClientData] = useState({
     firstname: "",
     lastname: "",
-    username: "",
+    cnic: "",
     email: "",
     phone: "",
-    address: "",
+    office_name: "",
+    office_address: "",
   });
 
   const router = useRouter();
@@ -45,14 +46,19 @@ export default function ViewClientForm() {
         <Divider />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ReadOnlyField label="Username" value={clientData.username} />
+          <ReadOnlyField label="CNIC" value={clientData.cnic} />
           <ReadOnlyField label="Email Address" value={clientData.email} />
         </div>
         <Divider />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ReadOnlyField label="Phone Number" value={clientData.phone} />
-          <ReadOnlyField label="Address" value={clientData.address} />
+          <ReadOnlyField label="Office Name" value={clientData.office_name} />
+        </div>
+        <Divider />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         
+          <ReadOnlyField label="Office Address" value={clientData.office_address} />
         </div>
         <Divider />
       </div>

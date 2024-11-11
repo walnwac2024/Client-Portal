@@ -1,38 +1,48 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react"; 
-import { FaEye, FaEdit, FaTrash,FaCaretRight  } from "react-icons/fa";
+"use client";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { routes } from "@/config/routes";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "../Spinner/spinner";
 import SearchBar from "../SearchBar";
-import { PiArrowSquareRight } from "react-icons/pi";
-export default function SortableTable() {
+import { motion } from "framer-motion";
+
+export default function SpecificClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState<any[]>(data);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
   const [sortConfig, setSortConfig] = useState({ key: "name", direction: "ascending" });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [rowsPerPage, setRowsPerPage] = useState(10);  // Default rows per page
-  const [currentPage, setCurrentPage] = useState(1);    // Current page number
-
-  const fetchData = useCallback(async () => {
-    try {
-      const response = await axios.get("/api/users/protectedUser");
-      setData(response.data);
-      setFilteredData(response.data);
-    } catch (error) {
-      toast.error("Failed to load data.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [formData, setFormData] = useState<any | null>(null);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const fetchClientData = async () => {
+      const userString = searchParams.get("user");
+      if (userString) {
+        try {
+          const decodedUser = JSON.parse(decodeURIComponent(userString));
+          setFormData(decodedUser); // Set formData
+          const response = await axios.post("/api/users/allClients", decodedUser );
+          setData(response.data);
+          setFilteredData(response.data);
+        } catch (error) {
+          console.error("Failed to fetch client data:", error);
+          toast.error("Failed to load client data.");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchClientData();
+  }, [searchParams]);
 
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {
@@ -74,13 +84,6 @@ export default function SortableTable() {
     },
     [router]
   );
-  const UserClients = useCallback(
-    (user) => {
-      const userString = encodeURIComponent(JSON.stringify(user));
-      router.push(`${routes.specificUsers}?user=${userString}`);
-    },
-    [router]
-  );
 
   const openDeleteModal = (user) => {
     setSelectedUser(user);
@@ -89,7 +92,7 @@ export default function SortableTable() {
 
   const confirmDelete = async () => {
     try {
-      await axios.put(`/api/users/deleteuser/?id=${selectedUser.id}`);
+      await axios.put(`/api/users/deleteclient/?id=${selectedUser.id}`);
       setData(data.filter((user) => user.id !== selectedUser.id));
       setFilteredData(filteredData.filter((user) => user.id !== selectedUser.id));
       toast.success("Client deleted successfully!");
@@ -109,7 +112,7 @@ export default function SortableTable() {
 
   const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(Number(event.target.value));
-    setCurrentPage(1);  // Reset to first page when rows per page is changed
+    setCurrentPage(1);
   };
 
   // Pagination logic
@@ -119,11 +122,11 @@ export default function SortableTable() {
   }, [sortedData, currentPage, rowsPerPage]);
 
   const totalPages = Math.ceil(sortedData.length / rowsPerPage);
-
+ console.log("the lenth of the data is:",data.length)
   return (
-    <div className="bg-gray-300 w-full mx-auto p-4 rounded-lg shadow-lg">
+    <div className="bg-gray-300 w-full max-w-4xl mx-auto p-4 rounded-lg shadow-lg">
       <div className="flex items-center justify-between mb-4 mt-4">
-        <h2 className="text-2xl text-black">Users Table</h2>
+        <h2 className="text-2xl text-black">{formData?.firstname} {formData?.lastname}  Clients</h2>
         <SearchBar onSearch={handleSearch} />
       </div>
 
@@ -131,9 +134,9 @@ export default function SortableTable() {
         <Spinner />
       ) : (
         <>
-          {data.length === 0 ? (
+          {data.length == 0 ? (
             <div className="text-center text-black">
-              <p>You have no Users. Kindly press the button above to add a users.</p>
+              <p>You have no clients. Kindly press the button above to add a client.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -144,18 +147,14 @@ export default function SortableTable() {
                       ID
                     </th>
                     <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("username")}>
-                      Full Name
-                    </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("username")}>
                       User Name
                     </th>
                     <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
                       Email
                     </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
-                      Phone Number
+                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("assigned_to")}>
+                      Assigned To
                     </th>
-                   
                     <th className="py-3 px-4 text-left text-white">Actions</th>
                   </tr>
                 </thead>
@@ -163,10 +162,9 @@ export default function SortableTable() {
                   {paginatedData.map((user) => (
                     <tr key={user.id} className="hover:bg-red-200">
                       <td className="py-3 px-4">{user.id}</td>
-                      <td className="py-3 px-4">{user.firstname} {user.lastname}</td>
                       <td className="py-3 px-4">{user.username}</td>
                       <td className="py-3 px-4">{user.email}</td>
-                      <td className="py-3 px-4">{user.phone}</td>
+                      <td className="py-3 px-4">{user.assigned_to}</td>
                       <td className="py-3 px-4 flex space-x-3 text-gray-700">
                         <button className="hover:text-blue-500" onClick={() => viewUser(user)}>
                           <FaEye className="h-5 w-5" title="View" />
@@ -176,9 +174,6 @@ export default function SortableTable() {
                         </button>
                         <button className="hover:text-red-500" onClick={() => openDeleteModal(user)}>
                           <FaTrash className="h-5 w-5" title="Delete" />
-                        </button>
-                        <button className="hover:text-yellow-500" onClick={() => UserClients(user)}>
-                          <FaCaretRight className="h-5 w-5" title="Show Clients" />
                         </button>
                       </td>
                     </tr>
@@ -204,7 +199,7 @@ export default function SortableTable() {
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
               >
                 Cancel
               </button>
@@ -213,38 +208,30 @@ export default function SortableTable() {
         </div>
       )}
 
-      {/* Pagination Controls */}
-      <div className="flex justify-between mt-4">
-        <div className="flex items-center">
+      <div className="flex items-center justify-between mt-4">
+        <div>
           <label htmlFor="rowsPerPage" className="mr-2">Rows per page:</label>
-          <select
-            id="rowsPerPage"
-            value={rowsPerPage}
-            onChange={handleRowsPerPageChange}
-            className="p-2 border rounded"
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
+          <select id="rowsPerPage" value={rowsPerPage} onChange={handleRowsPerPageChange} className="border p-2 rounded">
+            {[5, 10, 20, 50].map((rows) => (
+              <option key={rows} value={rows}>
+                {rows}
+              </option>
+            ))}
           </select>
         </div>
-
-        {/* Pagination buttons */}
-        <div className="flex space-x-2">
+        <div>
           <button
-            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            onClick={() => handlePageChange(currentPage - 1)}
+            className={`mr-2 ${currentPage === 1 ? "text-gray-500 cursor-not-allowed" : "hover:bg-gray-200"}`}
           >
-            Prev
+            Previous
           </button>
-          <span className="flex items-center justify-center">
-            Page {currentPage} of {totalPages}
-          </span>
+          <span className="mx-2">{`Page ${currentPage} of ${totalPages}`}</span>
           <button
-            onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            onClick={() => handlePageChange(currentPage + 1)}
+            className={`ml-2 ${currentPage === totalPages ? "text-gray-500 cursor-not-allowed" : "hover:bg-gray-200"}`}
           >
             Next
           </button>

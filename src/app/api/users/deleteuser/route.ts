@@ -10,8 +10,8 @@ export async function PUT(req) {
     const userId = url.searchParams.get('id'); // Extract user ID from the query string
     const connection = getConnection();
 
-    console.log("The user ID from query is for client:", userId);
   
+
     if (!userId) {
         return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
     }
@@ -19,7 +19,7 @@ export async function PUT(req) {
     try {
         // Update the user's status to 'N'
         const [result] = await connection.promise().query(
-            "UPDATE client SET status = 'N' WHERE id = ?",
+            "UPDATE users SET status = 'N' WHERE id = ?",
             [userId]
         );
 
@@ -28,9 +28,9 @@ export async function PUT(req) {
             return NextResponse.json({ error: 'User not found or already deleted.' }, { status: 404 });
         }
 
-        return NextResponse.json({ message: 'User status updated successfully.' }, { status: 200 });
+        return NextResponse.json({ message: 'User Deleted updated successfully.' }, { status: 200 });
     } catch (error) {
         console.error("Error updating user status:", error);
-        return NextResponse.json({ error: 'Failed to update user status.' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update user delete.' }, { status: 500 });
     }
 }

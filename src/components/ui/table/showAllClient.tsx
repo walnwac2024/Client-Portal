@@ -1,13 +1,14 @@
+"use client"
 import React, { useEffect, useState, useMemo, useCallback } from "react"; 
-import { FaEye, FaEdit, FaTrash,FaCaretRight  } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { routes } from "@/config/routes";
 import { useRouter } from "next/navigation";
 import Spinner from "../Spinner/spinner";
 import SearchBar from "../SearchBar";
-import { PiArrowSquareRight } from "react-icons/pi";
-export default function SortableTable() {
+
+export default function SortableTableforAllClients() {
   const router = useRouter();
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>(data);
@@ -20,7 +21,7 @@ export default function SortableTable() {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await axios.get("/api/users/protectedUser");
+      const response = await axios.get("/api/users/AdminAllClients");
       setData(response.data);
       setFilteredData(response.data);
     } catch (error) {
@@ -62,7 +63,7 @@ export default function SortableTable() {
   const viewUser = useCallback(
     (user) => {
       const userString = encodeURIComponent(JSON.stringify(user));
-      router.push(`${routes.viewClient}?user=${userString}`);
+      router.push(`${routes.viewUsers}?user=${userString}`);
     },
     [router]
   );
@@ -70,14 +71,7 @@ export default function SortableTable() {
   const editUser = useCallback(
     (user) => {
       const userString = encodeURIComponent(JSON.stringify(user));
-      router.push(`${routes.editClient}?user=${userString}`);
-    },
-    [router]
-  );
-  const UserClients = useCallback(
-    (user) => {
-      const userString = encodeURIComponent(JSON.stringify(user));
-      router.push(`${routes.specificUsers}?user=${userString}`);
+      router.push(`${routes.editUsers}?user=${userString}`);
     },
     [router]
   );
@@ -89,7 +83,7 @@ export default function SortableTable() {
 
   const confirmDelete = async () => {
     try {
-      await axios.put(`/api/users/deleteuser/?id=${selectedUser.id}`);
+      await axios.put(`/api/users/deleteclient/?id=${selectedUser.id}`);
       setData(data.filter((user) => user.id !== selectedUser.id));
       setFilteredData(filteredData.filter((user) => user.id !== selectedUser.id));
       toast.success("Client deleted successfully!");
@@ -123,7 +117,7 @@ export default function SortableTable() {
   return (
     <div className="bg-gray-300 w-full mx-auto p-4 rounded-lg shadow-lg">
       <div className="flex items-center justify-between mb-4 mt-4">
-        <h2 className="text-2xl text-black">Users Table</h2>
+        <h2 className="text-2xl text-black">Clients Table</h2>
         <SearchBar onSearch={handleSearch} />
       </div>
 
@@ -133,7 +127,7 @@ export default function SortableTable() {
         <>
           {data.length === 0 ? (
             <div className="text-center text-black">
-              <p>You have no Users. Kindly press the button above to add a users.</p>
+              <p>You have not been assigned any users. Kindly add users to see them listed here.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -146,16 +140,18 @@ export default function SortableTable() {
                     <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("username")}>
                       Full Name
                     </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("username")}>
-                      User Name
-                    </th>
                     <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
                       Email
                     </th>
                     <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
+                      CNIC
+                    </th>
+                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
                       Phone Number
                     </th>
-                   
+                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
+                      Added By
+                    </th>
                     <th className="py-3 px-4 text-left text-white">Actions</th>
                   </tr>
                 </thead>
@@ -164,9 +160,10 @@ export default function SortableTable() {
                     <tr key={user.id} className="hover:bg-red-200">
                       <td className="py-3 px-4">{user.id}</td>
                       <td className="py-3 px-4">{user.firstname} {user.lastname}</td>
-                      <td className="py-3 px-4">{user.username}</td>
                       <td className="py-3 px-4">{user.email}</td>
+                      <td className="py-3 px-4">{user.cnic}</td>
                       <td className="py-3 px-4">{user.phone}</td>
+                      <td className="py-3 px-4">{user.assigned_to}</td>
                       <td className="py-3 px-4 flex space-x-3 text-gray-700">
                         <button className="hover:text-blue-500" onClick={() => viewUser(user)}>
                           <FaEye className="h-5 w-5" title="View" />
@@ -176,9 +173,6 @@ export default function SortableTable() {
                         </button>
                         <button className="hover:text-red-500" onClick={() => openDeleteModal(user)}>
                           <FaTrash className="h-5 w-5" title="Delete" />
-                        </button>
-                        <button className="hover:text-yellow-500" onClick={() => UserClients(user)}>
-                          <FaCaretRight className="h-5 w-5" title="Show Clients" />
                         </button>
                       </td>
                     </tr>
@@ -216,38 +210,30 @@ export default function SortableTable() {
       {/* Pagination Controls */}
       <div className="flex justify-between mt-4">
         <div className="flex items-center">
-          <label htmlFor="rowsPerPage" className="mr-2">Rows per page:</label>
+          <label htmlFor="rowsPerPage" className="mr-2">
+            Rows per page:
+          </label>
           <select
             id="rowsPerPage"
             value={rowsPerPage}
             onChange={handleRowsPerPageChange}
-            className="p-2 border rounded"
+            className="border border-gray-300 rounded px-2 py-1"
           >
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
           </select>
         </div>
-
-        {/* Pagination buttons */}
         <div className="flex space-x-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
-            Prev
-          </button>
-          <span className="flex items-center justify-center">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
-            Next
-          </button>
+          {Array.from({ length: totalPages }).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => handlePageChange(index + 1)}
+              className={`px-3 py-1 border rounded ${currentPage === index + 1 ? "bg-gray-300" : ""}`}
+            >
+              {index + 1}
+            </button>
+          ))}
         </div>
       </div>
     </div>

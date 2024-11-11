@@ -109,6 +109,11 @@ export async function POST(request: NextRequest) {
             email: user.email,
             isAdmin:user.isAdmin,
         };
+        const data = {firstname:user.firstname,
+            lastname:user.lastname,
+            email:user.email,
+            isAdmin:user.isAdmin,
+        }
     //   console.log("the token data is:",tokenData)
         // Generate JWT token
         const token = jwt.sign(tokenData, process.env.JWT_SECRET! || "thisisme", { expiresIn: "1d" });
@@ -117,6 +122,7 @@ export async function POST(request: NextRequest) {
         const response = NextResponse.json({
             message: "Login successful",
             success: true,
+            data,
         });
         response.cookies.set("token", token, {
             httpOnly: true,
@@ -125,6 +131,7 @@ export async function POST(request: NextRequest) {
            maxAge: 24 * 60 * 60,//process.env.NODE_ENV === "development",
            
         });
+       
         // console.log("the response is:",response)
         return response;
 

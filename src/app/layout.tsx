@@ -1,4 +1,4 @@
-'use client'; // Mark this file as a Client Component
+
 
 import Head from 'next/head';
 import './globals.css';

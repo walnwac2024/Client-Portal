@@ -68,7 +68,6 @@
 //         return NextResponse.json({ error: error.message }, { status: 500 });
 //     }
 // }
-
 // pages/api/login.js
 import { connect, getConnection } from "@/dbConfig/dbConfig";
 import { NextRequest, NextResponse } from "next/server";
@@ -78,46 +77,55 @@ import jwt from "jsonwebtoken";
 // Ensure the connection is established
 connect();
 
-export async function POST(request: NextRequest) {
+export async function POST(request) {
     try {
         const reqBody = await request.json();
         const { email, password } = reqBody;
-       
+
         console.log("Received request body:", reqBody);
 
-        const connection = getConnection();
+        const sql = getConnection();
 
         // Check if user exists
-        const [rows] = await connection.promise().query("SELECT * FROM users WHERE email = ? AND status='Y'", [email]);
+        const rows = await sql`
+            SELECT * FROM users WHERE email = ${email} AND status = 'Y'
+        `;
+
+        console.log("Fetched user data:", rows);
+
         if (rows.length === 0) {
             return NextResponse.json({ error: "User does not exist" }, { status: 400 });
         }
 
         const user = rows[0];
+        console.log("User data:", user);
 
         // Hash the incoming password with MD5 and compare with stored password
         const hashedIncomingPassword = md5(password);
-  
+
         if (user.password !== hashedIncomingPassword) {
             return NextResponse.json({ error: "Invalid password" }, { status: 400 });
         }
- 
+
         // Create token data
         const tokenData = {
             id: user.id,
             username: user.username,
             email: user.email,
-            isAdmin:user.isAdmin,
+            isAdmin: user.isadmin, // Ensure the field matches your database schema
         };
-        const data = {firstname:user.firstname,
-            lastname:user.lastname,
-            email:user.email,
-            isAdmin:user.isAdmin,
-        }
-    //   console.log("the token data is:",tokenData)
+        const data = {
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            isAdmin: user.isadmin,
+        };
+
         // Generate JWT token
-        const token = jwt.sign(tokenData, process.env.JWT_SECRET! || "thisisme", { expiresIn: "1d" });
-        
+        const token = jwt.sign(tokenData, process.env.JWT_SECRET || "thisisme", {
+            expiresIn: "1d",
+        });
+
         // Create and set the token in cookies
         const response = NextResponse.json({
             message: "Login successful",
@@ -126,19 +134,27 @@ export async function POST(request: NextRequest) {
         });
         response.cookies.set("token", token, {
             httpOnly: true,
-            secure: false,
+            secure: process.env.NODE_ENV !== "development",
             path: "/",
-           maxAge: 24 * 60 * 60,//process.env.NODE_ENV === "development",
-           
+            maxAge: 24 * 60 * 60, // 1 day in seconds
         });
-       
-        // console.log("the response is:",response)
+
         return response;
 
-    } catch (error: any) {
+    } catch (error) {
+        console.error("Login error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+
+import postgres from 'postgres';
+
+const sql = postgres(process.env.POSTGRES_URL || "postgres://postgres.tfyubnsmdcdbwcgrtola:hJNdLwIZovoveUxX@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x", {
+    ssl: { rejectUnauthorized: false }, // Enable SSL for Supabase
+});
+
+export default sql;
 
 
 

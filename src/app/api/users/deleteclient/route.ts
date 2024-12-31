@@ -1,30 +1,30 @@
 // pages/api/users/[id].js
 import { NextResponse } from 'next/server';
-import { connect, getConnection } from "@/dbConfig/dbConfig";
-
-connect();
+import { getConnection,connect } from "@/dbConfig/dbConfig"; // PostgreSQL connection
+connect()
+const sql = getConnection(); // PostgreSQL connection
 
 export async function PUT(req) {
-    // Get the URL and extract the query parameters
-    const url = req.nextUrl;
-    const userId = url.searchParams.get('id'); // Extract user ID from the query string
-    const connection = getConnection();
+    // Get the userId from the request URL
+    const { id } = req.query; // Extract user ID from the URL parameters
 
-    console.log("The user ID from query is for client:", userId);
+    console.log("The user ID from query is for client:", id);
   
-    if (!userId) {
+    if (!id) {
         return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
     }
 
     try {
-        // Update the user's status to 'N'
-        const [result] = await connection.promise().query(
-            "UPDATE client SET status = 'N' WHERE id = ?",
-            [userId]
-        );
+        // Update the user's status to 'N' in the database
+        const result = await sql`
+            UPDATE client
+            SET status = 'N'
+            WHERE id = ${id}
+            RETURNING *;  // Optionally return updated user data
+        `;
 
         // Check if any rows were affected
-        if (result.affectedRows === 0) {
+        if (result.length === 0) {
             return NextResponse.json({ error: 'User not found or already deleted.' }, { status: 404 });
         }
 

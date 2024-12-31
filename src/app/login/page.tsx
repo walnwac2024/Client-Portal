@@ -18,9 +18,9 @@ export default function LoginPage() {
     setLoading(true); // Set loading to true when the function starts
     try {
       const response = await axios.post("/api/users/login", user);
-
+       console.log("the response from the back is:",response)
       // Store user data and token if needed
-      localStorage.setItem("userData", JSON.stringify(response.data));
+      localStorage.setItem("userData", JSON.stringify(response?.data));
       console.log("Data from backend:", response.data);
 
       // Show success toast

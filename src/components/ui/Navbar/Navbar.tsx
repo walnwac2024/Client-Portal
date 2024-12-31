@@ -9,10 +9,25 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   let userData;
-  if (typeof window !== "undefined") {
-    userData = JSON.parse(localStorage?.getItem("userData"));
+  
+
+  try {
+      const storedData = localStorage?.getItem("userData");
+      console.log("The user data is:",storedData)
+      
+      // Check if storedData exists and is not null
+      if (storedData) {
+          userData = JSON.parse(storedData);
+      } else {
+          userData = null; // Or handle as needed if no data exists
+      }
+  } catch (error) {
+      console.error("Error parsing user data from localStorage:", error);
+      userData = null; // Default value in case of error
   }
+  
   const hideNavbarRoutes = ['/login', '/signup'];
+  
 
   const handleLogout = async () => {
     try {

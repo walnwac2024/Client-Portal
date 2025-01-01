@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useState, useMemo, useCallback } from "react"; 
 import { FaEye, FaEdit, FaTrash, FaCaretRight } from "react-icons/fa";
 import axios from "axios";

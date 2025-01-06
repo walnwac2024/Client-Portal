@@ -2,7 +2,7 @@
 import SortableTableforAllClients from '@/components/ui/table/showAllClient'
 const page = () => {
   return (
-    <div>
+    <div className='mt-28'>
         <SortableTableforAllClients/>
     </div>
   )

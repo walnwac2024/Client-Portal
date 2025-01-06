@@ -40,7 +40,7 @@ export async function GET() {
     let query;
     console.log("the user is:",user)
     // Use SQL parameters instead of string interpolation for security
-    if (user.isAdmin === '1') {
+    if (user.isAdmin) {
       // Admin query
       console.log("running admin")
       query = await sql`

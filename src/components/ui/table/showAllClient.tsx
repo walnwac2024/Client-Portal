@@ -22,6 +22,7 @@ export default function SortableTableforAllClients() {
   const fetchData = useCallback(async () => {
     try {
       const response = await axios.get("/api/users/AdminAllClients");
+      // console.log("the data for all the users is:",response.data) 
       setData(response.data);
       setFilteredData(response.data);
     } catch (error) {

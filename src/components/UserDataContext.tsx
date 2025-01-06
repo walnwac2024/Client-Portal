@@ -16,21 +16,24 @@ export function UserDataProvider({
   initialData: any;
 }) {
   const [userData, setUserData] = useState(initialData || "");
+  const [Admin, setAdminData] = useState(initialData || "");
 
   useEffect(() => {
     if (!initialData && typeof window !== "undefined") {
       const storedData = localStorage.getItem("userData");
+
       const parsedData = storedData ? JSON.parse(storedData) : null;
       const name =
         parsedData?.data?.firstname || parsedData?.data?.lastname
           ? `${parsedData?.data?.firstname || ""} ${parsedData?.data?.lastname || ""}`
           : "";
       setUserData(name);
+      setAdminData(parsedData)
     }
   }, [initialData]);
 
   return (
-    <UserDataContext.Provider value={{ userData, setUserData }}>
+    <UserDataContext.Provider value={{Admin, userData, setUserData }}>
       {children}
     </UserDataContext.Provider>
   );

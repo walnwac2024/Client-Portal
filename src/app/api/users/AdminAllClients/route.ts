@@ -1,40 +1,88 @@
-// pages/api/protectedData.js
+// app/api/users/AdminAllClients/route.ts
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { getConnection,connect } from "@/dbConfig/dbConfig"; // Use PostgreSQL connection
-connect()
-const sql = getConnection(); // PostgreSQL connection
+import { getConnection, connect } from "@/dbConfig/dbConfig";
+import { cookies } from 'next/headers';
 
-export async function GET(req, res) {
-    const token = req.cookies.get('token')?.value;
+// Make sure to properly type your user interface
+interface User {
+  email: string;
+  isAdmin: boolean;
+}
 
-    // Check for a valid token
+export async function GET() {
+  try {
+    // Get the cookie using the new cookies() API
+    const cookieStore = cookies();
+    const token = cookieStore.get('token')?.value;
+
     if (!token) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized: No token provided' }, 
+        { status: 401 }
+      );
     }
 
-    try {
-        // Verify the token and extract user info
-        const user:any = jwt.verify(token, process.env.JWT_SECRET);
+    // Connect to database
+    await connect();
+    const sql = getConnection();
 
-        let query;
-        let params = [];
+    // Verify token and type-cast the decoded user
+    const user:any = jwt.verify(token, process.env.JWT_SECRET as string) as User;
 
-        // If admin, fetch all data; otherwise, fetch user-specific data
-        if (user.isAdmin) {
-            query = `SELECT * FROM client WHERE status = 'Y'`; // Fetch all data for admin
-        } else {
-            // You can modify this part to fetch user-specific data if necessary
-            query = `SELECT * FROM client WHERE assigned_to = ${user?.email} AND status = 'Y'`;
-        }
-
-        // Fetch data from the database
-        const rows = await sql`
-            ${sql.raw(query)}
-        `;
-
-        return NextResponse.json(rows, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid token' }, 
+        { status: 401 }
+      );
     }
+
+    let query;
+    console.log("the user is:",user)
+    // Use SQL parameters instead of string interpolation for security
+    if (user.isAdmin === '1') {
+      // Admin query
+      console.log("running admin")
+      query = await sql`
+        SELECT * FROM client 
+        WHERE status = 'Y'
+      `;
+    } else {
+      console.log("running clinet")
+      // Regular user query with parameterized query
+      query = await sql`
+        SELECT * FROM client 
+        WHERE assigned_to = ${user.email}  
+        AND status = 'Y'
+      `;
+    }
+
+    // Return the results
+    return NextResponse.json(query, { status: 200 });
+
+  } catch (error) {
+    console.error('API Error:', error);
+    
+    // Determine if it's a JWT error
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json(
+        { error: 'Invalid token' }, 
+        { status: 401 }
+      );
+    }
+
+    // Handle database errors
+    if (error.code) { // SQL errors usually have a code
+      return NextResponse.json(
+        { error: 'Database error', details: error.code },
+        { status: 500 }
+      );
+    }
+
+    // Generic error response
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
+  }
 }

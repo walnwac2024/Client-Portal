@@ -7,7 +7,8 @@ import SortableTableforusers from "@/components/ui/table/Client-table";
 import SortableTable from "@/components/ui/table/table";
 
 export default function ClientContent() {
-  const { userData } = useUserData();
+  const { userData, Admin } = useUserData();
+  console.log("the data from the local host:",userData,Admin?.data)
 
   return (
     <div className="relative min-h-screen bg-white flex flex-col items-center justify-center p-4">
@@ -24,10 +25,10 @@ export default function ClientContent() {
         </motion.h1>
       </HeroHighlight>
 
-      <ClientActions isAdmin={userData?.isAdmin} />
+      <ClientActions isAdmin={Admin?.data?.isAdmin} />
 
       <div className="flex justify-center items-center w-full px-4 mt-12 md:mt-8">
-        {userData?.isAdmin ? <SortableTable /> : <SortableTableforusers />}
+        {Admin?.data?.isAdmin ? <SortableTable /> : <SortableTableforusers />}
       </div>
     </div>
   );

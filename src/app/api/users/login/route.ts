@@ -112,13 +112,13 @@ export async function POST(request) {
             id: user.id,
             username: user.username,
             email: user.email,
-            isAdmin: user.isadmin, // Ensure the field matches your database schema
+            isAdmin: user.isAdmin, // Ensure the field matches your database schema
         };
         const data = {
             firstname: user.firstname,
             lastname: user.lastname,
             email: user.email,
-            isAdmin: user.isadmin,
+            isAdmin: user.isAdmin,
         };
 
         // Generate JWT token

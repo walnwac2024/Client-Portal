@@ -19,6 +19,7 @@ interface User {
 }
 
 export default function SortableTable() {
+  console.log("i'm in the admin sotable table")
   const router = useRouter();
   const [data, setData] = useState<User[]>([]);
   const [filteredData, setFilteredData] = useState<User[]>([]);

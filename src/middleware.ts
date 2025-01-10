@@ -110,7 +110,15 @@ export const config = {
         '/profile',      // Protected profile path
         '/dashboard',    // Add additional protected paths as needed
         '/login',        // Public login path
-        '/signup',       // Public signup path
+        '/signup',       
+        '/AddNewClient',
+        '/addNewUser',
+        '/AllClinets',
+        '/clientdetails/view',
+        '/clientdetails/edit',
+        '/userClients',
+        '/userDetails/viewuser',
+        '/userDetails/edituser',     
     ],
 };
 

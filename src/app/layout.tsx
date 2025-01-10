@@ -33,7 +33,7 @@ export default function RootLayout({
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
         {/* Custom favicon */}
-        <link rel="icon" href="/images/Elaan-logo.png" />
+        <link rel="icon" type="image/png"  href="/images/Elaan-logo.png" />
       </Head>
       <body className={`${inter.className} bg-white`}>
        <Navbar/>

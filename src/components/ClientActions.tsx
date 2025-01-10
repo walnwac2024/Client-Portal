@@ -34,6 +34,12 @@ export default function ClientActions({ isAdmin }: ClientActionsProps) {
       >
         <span className="text-lg md:text-xl lg:text-2xl font-bold">+</span> Add Client
       </button>
+      {/* <button
+        className="flex items-center justify-center rounded-xl bg-[#E62E2D] px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 transition-all duration-150"
+        onClick={handleAddUser}
+      >
+        <span className="text-lg md:text-xl lg:text-2xl font-bold">+</span> Send Sms
+      </button> */}
     </div>
   );
 }

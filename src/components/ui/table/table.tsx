@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import Spinner from "../Spinner/spinner";
 import SearchBar from "../SearchBar";
 
-// Type definition for User to improve type safety
 interface User {
   id: number;
   firstname: string;
@@ -19,10 +18,9 @@ interface User {
 }
 
 export default function SortableTable() {
-  console.log("i'm in the admin sotable table")
   const router = useRouter();
   const [data, setData] = useState<User[]>([]);
-  const [filteredData, setFilteredData] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState({ 
     key: "username" as keyof User, 
     direction: "ascending" 
@@ -32,19 +30,12 @@ export default function SortableTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const handlePageChange = useCallback((page: number) => {
-    // Only update if the page is within valid range
-    if (page > 0 && page <= Math.ceil(filteredData.length / rowsPerPage)) {
-      setCurrentPage(page);
-    }
-  }, [filteredData, rowsPerPage]);
-  // Memoized fetch data to prevent unnecessary re-renders
+
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await axios.get<User[]>("/api/users/protectedUser");
       setData(response.data);
-      setFilteredData(response.data);
     } catch (error) {
       toast.error("Failed to load data.");
       console.error(error);
@@ -53,12 +44,29 @@ export default function SortableTable() {
     }
   }, []);
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Optimized sorting logic
+  // Updated filtering logic
+  const filteredData = useMemo(() => {
+    if (!searchQuery) return data;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return data.filter((user) => {
+      const fullName = `${user.firstname} ${user.lastname}`.toLowerCase();
+      const searchFields = [
+        fullName,
+        user?.username.toLowerCase(),
+        user?.email.toLowerCase(),
+        user?.phone,
+      ];
+      
+      return searchFields.some(field => field?.includes(query));
+    });
+  }, [data, searchQuery]);
+
+  // Updated sorting logic
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {
       const valueA = a[sortConfig.key];
@@ -70,7 +78,6 @@ export default function SortableTable() {
     });
   }, [filteredData, sortConfig]);
 
-  // Memoized sort request handler
   const requestSort = useCallback((key: keyof User) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -80,39 +87,29 @@ export default function SortableTable() {
     }));
   }, []);
 
-  // Optimized search handler
+  // Updated search handler
   const handleSearch = useCallback((query: string) => {
-    const lowerQuery = query.toLowerCase();
-    const filtered = data.filter(
-      (user) =>
-        user.username.toLowerCase().includes(lowerQuery) ||
-        user.email.toLowerCase().includes(lowerQuery) ||
-        user.firstname.toLowerCase().includes(lowerQuery) ||
-        user.lastname.toLowerCase().includes(lowerQuery)
-    );
-    setFilteredData(filtered);
+    setSearchQuery(query);
     setCurrentPage(1);  // Reset to first page on search
-  }, [data]);
+  }, []);
 
-  // Navigation handlers with type safety
+  const handlePageChange = useCallback((page: number) => {
+    if (page > 0 && page <= Math.ceil(filteredData.length / rowsPerPage)) {
+      setCurrentPage(page);
+    }
+  }, [filteredData.length, rowsPerPage]);
+
   const navigateTo = useCallback((route: string, user: User) => {
     const userString = encodeURIComponent(JSON.stringify(user));
     router.push(`${route}?user=${userString}`);
   }, [router]);
 
-  // Delete user handler
   const confirmDelete = useCallback(async () => {
     if (!selectedUser) return;
 
     try {
       await axios.put(`/api/users/deleteuser/?id=${selectedUser.id}`);
-      
-      // Functional update to ensure we're working with the most recent state
       setData(prevData => prevData.filter((user) => user.id !== selectedUser.id));
-      setFilteredData(prevFilteredData => 
-        prevFilteredData.filter((user) => user.id !== selectedUser.id)
-      );
-      
       toast.success("Client deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete Client.");
@@ -123,7 +120,6 @@ export default function SortableTable() {
     }
   }, [selectedUser]);
 
-  // Pagination logic
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     return sortedData.slice(startIndex, startIndex + rowsPerPage);
@@ -131,7 +127,6 @@ export default function SortableTable() {
 
   const totalPages = Math.ceil(sortedData.length / rowsPerPage);
 
-  // Render methods
   const renderActionButtons = useCallback((user: User) => (
     <td className="py-3 px-4 flex space-x-3 text-gray-700">
       <button className="hover:text-blue-500" onClick={() => navigateTo(routes.viewClient, user)}>
@@ -165,7 +160,7 @@ export default function SortableTable() {
         <>
           {filteredData.length === 0 ? (
             <div className="text-center text-black">
-              <p>No Users found. Please add users.</p>
+              <p>No Users found. Please try a different search or add users.</p>
             </div>
           ) : (
             <>
@@ -194,11 +189,11 @@ export default function SortableTable() {
                   <tbody className="text-black">
                     {paginatedData.map((user) => (
                       <tr key={user.id} className="hover:bg-red-200">
-                        <td className="py-3 px-4">{user.id}</td>
-                        <td className="py-3 px-4">{user.firstname} {user.lastname}</td>
-                        <td className="py-3 px-4">{user.username}</td>
-                        <td className="py-3 px-4">{user.email}</td>
-                        <td className="py-3 px-4">{user.phone}</td>
+                        <td className="py-3 px-4">{user?.id}</td>
+                        <td className="py-3 px-4">{user?.firstname} {user?.lastname}</td>
+                        <td className="py-3 px-4">{user?.username}</td>
+                        <td className="py-3 px-4">{user?.email}</td>
+                        <td className="py-3 px-4">{user?.phone}</td>
                         {renderActionButtons(user)}
                       </tr>
                     ))}
@@ -206,7 +201,6 @@ export default function SortableTable() {
                 </table>
               </div>
               
-              {/* Pagination Controls */}
               <div className="flex justify-between mt-4">
                 <div className="flex items-center">
                   <label htmlFor="rowsPerPage" className="mr-2">Rows per page:</label>
@@ -248,7 +242,6 @@ export default function SortableTable() {
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">

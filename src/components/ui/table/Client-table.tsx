@@ -28,9 +28,9 @@ interface SortConfig {
 export default function SortableTableForUsers() {
   const router = useRouter();
   
-  // Typed state management
+  // State management
   const [data, setData] = useState<Client[]>([]);
-  const [filteredData, setFilteredData] = useState<Client[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({ 
     key: 'id', 
     direction: 'ascending' 
@@ -39,18 +39,14 @@ export default function SortableTableForUsers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Pagination state with type safety
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Memoized data fetching
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await axios.get<Client[]>("/api/users/clientDetails");
       setData(response.data);
-      setFilteredData(response.data);
     } catch (error) {
       toast.error("Failed to load clients.");
       console.error(error);
@@ -59,23 +55,41 @@ export default function SortableTableForUsers() {
     }
   }, []);
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Optimized sorting logic with type safety
+  // Enhanced filtering logic
+  const filteredData = useMemo(() => {
+    if (!searchQuery) return data;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return data.filter((client) => {
+      const searchFields = [
+        `${client.firstname} ${client.lastname}`.toLowerCase(), // Full name
+        client?.firstname?.toLowerCase(),
+        client?.lastname?.toLowerCase(),
+        client?.email?.toLowerCase(),
+        client?.cnic,,
+        client?.phone,
+        client?.assigned_to?.toLowerCase()
+      ];
+      
+      return searchFields.some(field => field.includes(query));
+    });
+  }, [data, searchQuery]);
+
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) 
-        return sortConfig.direction === "ascending" ? -1 : 1;
-      if (a[sortConfig.key] > b[sortConfig.key]) 
-        return sortConfig.direction === "ascending" ? 1 : -1;
+      const valueA = a[sortConfig.key];
+      const valueB = b[sortConfig.key];
+      
+      if (valueA < valueB) return sortConfig.direction === "ascending" ? -1 : 1;
+      if (valueA > valueB) return sortConfig.direction === "ascending" ? 1 : -1;
       return 0;
     });
   }, [filteredData, sortConfig]);
 
-  // Improved sort request handler with type safety
   const requestSort = useCallback((key: keyof Client) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -85,38 +99,23 @@ export default function SortableTableForUsers() {
     }));
   }, []);
 
-  // Enhanced search handler
+  // Updated search handler
   const handleSearch = useCallback((query: string) => {
-    const lowerQuery = query.toLowerCase();
-    const filtered = data.filter(
-      (client) =>
-        client.firstname.toLowerCase().includes(lowerQuery) ||
-        client.lastname.toLowerCase().includes(lowerQuery) ||
-        client.email.toLowerCase().includes(lowerQuery) ||
-        client.cnic.toLowerCase().includes(lowerQuery) ||
-        client.phone.toLowerCase().includes(lowerQuery)
-    );
-    setFilteredData(filtered);
+    setSearchQuery(query);
     setCurrentPage(1); // Reset to first page on search
-  }, [data]);
+  }, []);
 
-  // Consolidated navigation handler
   const navigateToPage = useCallback((route: string, client: Client) => {
     const clientString = encodeURIComponent(JSON.stringify(client));
     router.push(`${route}?user=${clientString}`);
   }, [router]);
 
-  // Improved delete handler
   const confirmDelete = useCallback(async () => {
     if (!selectedUser) return;
 
     try {
       await axios.put(`/api/users/deleteclient/?id=${selectedUser.id}`);
-      
-      // Functional state updates
       setData(prevData => prevData.filter(client => client.id !== selectedUser.id));
-      setFilteredData(prevFiltered => prevFiltered.filter(client => client.id !== selectedUser.id));
-      
       toast.success("Client deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete client.");
@@ -127,21 +126,19 @@ export default function SortableTableForUsers() {
     }
   }, [selectedUser]);
 
-  // Pagination calculations
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     return sortedData.slice(startIndex, startIndex + rowsPerPage);
   }, [sortedData, currentPage, rowsPerPage]);
 
-  // Improved page change handler
+  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
+
   const handlePageChange = useCallback((page: number) => {
     if (page > 0 && page <= totalPages) {
       setCurrentPage(page);
     }
   }, [totalPages]);
 
-  // Render action buttons
   const renderActionButtons = useCallback((client: Client) => (
     <td className="py-3 px-4 flex space-x-3 text-gray-700">
       <button 
@@ -181,7 +178,7 @@ export default function SortableTableForUsers() {
         <>
           {filteredData.length === 0 ? (
             <div className="text-center text-black">
-              <p>No clients found. Add clients to see them listed here.</p>
+              <p>No clients found. Please try a different search or add new clients.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -223,10 +220,48 @@ export default function SortableTableForUsers() {
               </table>
             </div>
           )}
+
+          <div className="flex justify-between mt-4">
+            <div className="flex items-center">
+              <label htmlFor="rowsPerPage" className="mr-2">Rows per page:</label>
+              <select
+                id="rowsPerPage"
+                value={rowsPerPage}
+                onChange={(e) => {
+                  setRowsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded px-2 py-1"
+              >
+                {[5, 10, 20].map(num => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span className="flex items-center">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -249,46 +284,6 @@ export default function SortableTableForUsers() {
           </div>
         </div>
       )}
-
-      {/* Pagination Controls */}
-      <div className="flex justify-between mt-4">
-        <div className="flex items-center">
-          <label htmlFor="rowsPerPage" className="mr-2">Rows per page:</label>
-          <select
-            id="rowsPerPage"
-            value={rowsPerPage}
-            onChange={(e) => {
-              setRowsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="border border-gray-300 rounded px-2 py-1"
-          >
-            {[5, 10, 20].map(num => (
-              <option key={num} value={num}>{num}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span className="flex items-center">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

@@ -8,25 +8,39 @@ import { useRouter } from "next/navigation";
 import Spinner from "../Spinner/spinner";
 import SearchBar from "../SearchBar";
 
+// Type definition for Client
+interface Client {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  cnic: string;
+  phone: string;
+  assigned_to: string;
+}
+
 export default function SortableTableforAllClients() {
   const router = useRouter();
-  const [data, setData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState<any[]>(data);
-  const [sortConfig, setSortConfig] = useState({ key: "name", direction: "ascending" });
+  const [data, setData] = useState<Client[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState({ 
+    key: "firstname" as keyof Client, 
+    direction: "ascending" as "ascending" | "descending" 
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [rowsPerPage, setRowsPerPage] = useState(10);  // Default rows per page
-  const [currentPage, setCurrentPage] = useState(1);    // Current page number
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await axios.get("/api/users/AdminAllClients");
-      // console.log("the data for all the users is:",response.data) 
+      setIsLoading(true);
+      const response = await axios.get<Client[]>("/api/users/AdminAllClients");
       setData(response.data);
-      setFilteredData(response.data);
     } catch (error) {
       toast.error("Failed to load data.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -36,57 +50,72 @@ export default function SortableTableforAllClients() {
     fetchData();
   }, [fetchData]);
 
+  // Enhanced filtering logic
+  const filteredData = useMemo(() => {
+    if (!searchQuery) return data;
+    
+    const query = searchQuery?.toLowerCase().trim();
+    return data.filter((client) => {
+      const searchFields = [
+        `${client?.firstname} ${client?.lastname}`?.toLowerCase(), // Full name
+        client?.firstname?.toLowerCase(),
+        client?.lastname?.toLowerCase(),
+        client?.email?.toLowerCase(),
+        client?.cnic,
+        client?.phone,
+        client?.assigned_to?.toLowerCase()
+      ];
+      
+      return searchFields.some(field => field.includes(query));
+    });
+  }, [data, searchQuery]);
+
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === "ascending" ? -1 : 1;
-      if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === "ascending" ? 1 : -1;
+      const valueA = a[sortConfig.key];
+      const valueB = b[sortConfig.key];
+      
+      if (valueA < valueB) return sortConfig.direction === "ascending" ? -1 : 1;
+      if (valueA > valueB) return sortConfig.direction === "ascending" ? 1 : -1;
       return 0;
     });
   }, [filteredData, sortConfig]);
 
-  const requestSort = useCallback((key: string) => {
+  const requestSort = useCallback((key: keyof Client) => {
     setSortConfig((prevConfig) => ({
       key,
-      direction: prevConfig.key === key && prevConfig.direction === "ascending" ? "descending" : "ascending",
+      direction: prevConfig.key === key && prevConfig.direction === "ascending" 
+        ? "descending" 
+        : "ascending",
     }));
   }, []);
 
-  const handleSearch = (query: string) => {
-    const lowerQuery = query.toLowerCase();
-    const filtered = data.filter(
-      (user) =>
-        user.username.toLowerCase().includes(lowerQuery) ||
-        user.email.toLowerCase().includes(lowerQuery)
-    );
-    setFilteredData(filtered);
-  };
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page on search
+  }, []);
 
-  const viewUser = useCallback(
-    (user) => {
-      const userString = encodeURIComponent(JSON.stringify(user));
-      router.push(`${routes.viewUsers}?user=${userString}`);
-    },
-    [router]
-  );
+  const viewUser = useCallback((user: Client) => {
+    const userString = encodeURIComponent(JSON.stringify(user));
+    router.push(`${routes.viewUsers}?user=${userString}`);
+  }, [router]);
 
-  const editUser = useCallback(
-    (user) => {
-      const userString = encodeURIComponent(JSON.stringify(user));
-      router.push(`${routes.editUsers}?user=${userString}`);
-    },
-    [router]
-  );
+  const editUser = useCallback((user: Client) => {
+    const userString = encodeURIComponent(JSON.stringify(user));
+    router.push(`${routes.editUsers}?user=${userString}`);
+  }, [router]);
 
-  const openDeleteModal = (user) => {
+  const openDeleteModal = useCallback((user: Client) => {
     setSelectedUser(user);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
+    if (!selectedUser) return;
+
     try {
       await axios.put(`/api/users/deleteclient/?id=${selectedUser.id}`);
-      setData(data.filter((user) => user.id !== selectedUser.id));
-      setFilteredData(filteredData.filter((user) => user.id !== selectedUser.id));
+      setData(prevData => prevData.filter(user => user.id !== selectedUser.id));
       toast.success("Client deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete Client.");
@@ -95,25 +124,20 @@ export default function SortableTableforAllClients() {
       setIsModalOpen(false);
       setSelectedUser(null);
     }
-  };
+  }, [selectedUser]);
 
-  // Handle page change and rows per page
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowsPerPage(Number(event.target.value));
-    setCurrentPage(1);  // Reset to first page when rows per page is changed
-  };
-
-  // Pagination logic
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     return sortedData.slice(startIndex, startIndex + rowsPerPage);
   }, [sortedData, currentPage, rowsPerPage]);
 
   const totalPages = Math.ceil(sortedData.length / rowsPerPage);
+
+  const handlePageChange = useCallback((page: number) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  }, [totalPages]);
 
   return (
     <div className="bg-gray-300 w-full mx-auto p-4 rounded-lg shadow-lg">
@@ -126,53 +150,54 @@ export default function SortableTableforAllClients() {
         <Spinner />
       ) : (
         <>
-          {data.length === 0 ? (
+          {filteredData.length === 0 ? (
             <div className="text-center text-black">
-              <p>You have not been assigned any users. Kindly add users to see them listed here.</p>
+              <p>{data.length === 0 ? 
+                "You have not been assigned any users. Kindly add users to see them listed here." : 
+                "No clients found matching your search criteria. Please try a different search term."}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full table-auto bg-[#E6E8EA] rounded-lg overflow-hidden">
                 <thead className="bg-[#E62E2D]">
                   <tr>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("id")}>
-                      ID
-                    </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("username")}>
-                      Full Name
-                    </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
-                      Email
-                    </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
-                      CNIC
-                    </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
-                      Phone Number
-                    </th>
-                    <th className="py-3 px-4 text-left text-white cursor-pointer" onClick={() => requestSort("email")}>
-                      Added By
-                    </th>
+                    {[
+                      { key: 'id', label: 'ID' },
+                      { key: 'firstname', label: 'Full Name' },
+                      { key: 'email', label: 'Email' },
+                      { key: 'cnic', label: 'CNIC' },
+                      { key: 'phone', label: 'Phone Number' },
+                      { key: 'assigned_to', label: 'Added By' }
+                    ].map(({ key, label }) => (
+                      <th 
+                        key={key} 
+                        className="py-3 px-4 text-left text-white cursor-pointer" 
+                        onClick={() => requestSort(key as keyof Client)}
+                      >
+                        {label}
+                      </th>
+                    ))}
                     <th className="py-3 px-4 text-left text-white">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-black">
-                  {paginatedData.map((user) => (
-                    <tr key={user.id} className="hover:bg-red-200">
-                      <td className="py-3 px-4">{user.id}</td>
-                      <td className="py-3 px-4">{user.firstname} {user.lastname}</td>
-                      <td className="py-3 px-4">{user.email}</td>
-                      <td className="py-3 px-4">{user.cnic}</td>
-                      <td className="py-3 px-4">{user.phone}</td>
-                      <td className="py-3 px-4">{user.assigned_to}</td>
+                  {paginatedData.map((client) => (
+                    <tr key={client.id} className="hover:bg-red-200">
+                      <td className="py-3 px-4">{client.id}</td>
+                      <td className="py-3 px-4">{client.firstname} {client.lastname}</td>
+                      <td className="py-3 px-4">{client.email}</td>
+                      <td className="py-3 px-4">{client.cnic}</td>
+                      <td className="py-3 px-4">{client.phone}</td>
+                      <td className="py-3 px-4">{client.assigned_to}</td>
                       <td className="py-3 px-4 flex space-x-3 text-gray-700">
-                        <button className="hover:text-blue-500" onClick={() => viewUser(user)}>
+                        <button className="hover:text-blue-500" onClick={() => viewUser(client)}>
                           <FaEye className="h-5 w-5" title="View" />
                         </button>
-                        <button className="hover:text-yellow-500" onClick={() => editUser(user)}>
+                        <button className="hover:text-yellow-500" onClick={() => editUser(client)}>
                           <FaEdit className="h-5 w-5" title="Edit" />
                         </button>
-                        <button className="hover:text-red-500" onClick={() => openDeleteModal(user)}>
+                        <button className="hover:text-red-500" onClick={() => openDeleteModal(client)}>
                           <FaTrash className="h-5 w-5" title="Delete" />
                         </button>
                       </td>
@@ -208,7 +233,6 @@ export default function SortableTableforAllClients() {
         </div>
       )}
 
-      {/* Pagination Controls */}
       <div className="flex justify-between mt-4">
         <div className="flex items-center">
           <label htmlFor="rowsPerPage" className="mr-2">
@@ -217,24 +241,35 @@ export default function SortableTableforAllClients() {
           <select
             id="rowsPerPage"
             value={rowsPerPage}
-            onChange={handleRowsPerPageChange}
+            onChange={(e) => {
+              setRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
             className="border border-gray-300 rounded px-2 py-1"
           >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
+            {[5, 10, 20].map(num => (
+              <option key={num} value={num}>{num}</option>
+            ))}
           </select>
         </div>
         <div className="flex space-x-2">
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <button
-              key={index}
-              onClick={() => handlePageChange(index + 1)}
-              className={`px-3 py-1 border rounded ${currentPage === index + 1 ? "bg-gray-300" : ""}`}
-            >
-              {index + 1}
-            </button>
-          ))}
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="flex items-center mx-2">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

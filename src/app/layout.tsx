@@ -35,7 +35,7 @@ export default function RootLayout({
         {/* Custom favicon */}
         <link rel="icon" type="image/png"  href="/images/Elaan-logo.png" />
       </Head>
-      <body className={`${inter.className} bg-white`}>
+      <body className={`${inter.className} bg-[#F3F4F6]`}>
        <Navbar/>
         <div className="bg-white w-full">
           <Toaster />

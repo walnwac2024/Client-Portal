@@ -5,10 +5,8 @@ connect()
 const sql = getConnection(); // PostgreSQL connection
 
 export async function PUT(req) {
-    // Get the userId from the request URL
-    const { id } = req.query; // Extract user ID from the URL parameters
-
-    console.log("The user ID from query is for client:", id);
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id'); 
   
     if (!id) {
         return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });

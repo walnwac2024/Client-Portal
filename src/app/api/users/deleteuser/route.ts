@@ -1,12 +1,14 @@
 // pages/api/users/[id].js
 import { NextResponse } from 'next/server';
-import { getConnection,connect } from "@/dbConfig/dbConfig"; // PostgreSQL connection
-connect()
+import { getConnection, connect } from "@/dbConfig/dbConfig"; // PostgreSQL connection
+connect();
 const sql = getConnection(); // PostgreSQL connection
 
 export async function PUT(req) {
-    // Get the userId from the request URL
-    const { id } = req.query; // Extract user ID from the URL parameters
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id'); 
+
+    
 
     if (!id) {
         return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
@@ -18,7 +20,7 @@ export async function PUT(req) {
             UPDATE users
             SET status = 'N'
             WHERE id = ${id}
-            RETURNING *;  // Optionally return updated user data
+            RETURNING *; 
         `;
 
         // Check if any rows were affected

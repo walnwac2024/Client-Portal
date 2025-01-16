@@ -1,78 +1,3 @@
-// import { NextResponse } from 'next/server'
-// import type { NextRequest } from 'next/server'
- 
-
-// export function middleware(request: NextRequest) {
-//   const path = request.nextUrl.pathname
-
-//   const isPublicPath = path === '/login' || path === '/signup'
-
-//   const token = request.cookies.get('token')?.value || ''
-
-//   if(isPublicPath && token) {
-//     return NextResponse.redirect(new URL('/', request.nextUrl))
-//   }
-// console.log("the path is;",isPublicPath)
-// console.log("the token is is;",token)
-//   if (!isPublicPath && !token) {
-//     return NextResponse.redirect(new URL('/login', request.nextUrl))
-//   }
-    
-// }
-
- 
-// // See "Matching Paths" below to learn more
-// export const config = {
-//   matcher: [
-//     '/',
-//     '/profile',
-//     '/login',
-//     '/signup',
-//     '/verifyemail'
-//   ]
-// }
-
-
-// import { NextResponse } from 'next/server';
-// import type { NextRequest } from 'next/server';
-
-// export function middleware(request: NextRequest) {
-//     const path =  request.nextUrl.pathname;
-//     // console.log("the pthe at the start is:",request)
-//     // Define public paths
-//     const isPublicPath = path === '/login' || path === '/signup';
-
-//     // Retrieve the token from cookies
-//     const token = request.cookies.get('token')?.value || '';
-
-//     // Redirect if the user is authenticated but trying to access public pages
-//     if (isPublicPath && token) {
-//         return NextResponse.redirect(new URL('/', request.nextUrl));
-//     }
-
-//     // Log the path and token for debugging
-//     console.log("The path is:", path);
-//     console.log("The token is:", token);
-
-//     // Redirect if the user is not authenticated and trying to access protected routes
-//     if (!isPublicPath && !token) {
-//         return NextResponse.redirect(new URL('/login', request.nextUrl));
-//     }
-
-//     // If neither condition is met, continue the request
-//     return NextResponse.next();
-// }
-
-// // Specify the paths to match for the middleware
-// export const config = {
-//     matcher: [
-//         '/',             // Root path
-//         '/profile',      // Protected profile path
-//         '/login',        // Public login path
-//         '/signup',       // Public signup path
-     
-//     ],
-// };
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -99,6 +24,17 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.nextUrl));
     }
 
+    // Handle specific route: `/api/upload` with custom headers
+    if (pathname === '/api/upload') {
+        return NextResponse.next({
+            headers: {
+                "Accept": "multipart/form-data",
+                "Content-Type": "multipart/form-data",
+                "Access-Control-Allow-Origin": "*",
+            },
+        });
+    }
+
     // If none of the conditions are met, proceed with the request
     return NextResponse.next();
 }
@@ -106,19 +42,18 @@ export function middleware(request: NextRequest) {
 // Middleware config to specify matched routes
 export const config = {
     matcher: [
-        '/',             // Root path, typically protected
-        '/profile',      // Protected profile path
-        '/dashboard',    // Add additional protected paths as needed
-        '/login',        // Public login path
-        '/signup',       
-        '/AddNewClient',
-        '/addNewUser',
-        '/AllClinets',
-        '/clientdetails/view',
-        '/clientdetails/edit',
-        '/userClients',
-        '/userDetails/viewuser',
-        '/userDetails/edituser',     
+        '/',                // Root path, typically protected
+        '/profile',         // Protected profile path
+        '/dashboard',       // Additional protected path
+        '/login',           // Public login path
+        '/signup',          // Public signup path
+        '/AddNewClient',    // Protected path
+        '/addNewUser',      // Protected path
+        '/AllClinets',      // Protected path
+        '/clientdetails/view', // Protected path
+        '/clientdetails/edit', // Protected path
+        '/userClients',     // Protected path
+        '/userDetails/viewuser', // Protected path
+        '/userDetails/edituser', // Protected path
     ],
 };
-

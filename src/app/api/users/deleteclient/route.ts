@@ -7,7 +7,7 @@ const sql = getConnection(); // PostgreSQL connection
 export async function PUT(req) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id'); 
-  
+  console.log("the id with clients:",id)
     if (!id) {
         return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
     }
@@ -18,17 +18,17 @@ export async function PUT(req) {
             UPDATE client
             SET status = 'N'
             WHERE id = ${id}
-            RETURNING *;  // Optionally return updated user data
+            RETURNING *; 
         `;
 
         // Check if any rows were affected
         if (result.length === 0) {
-            return NextResponse.json({ error: 'User not found or already deleted.' }, { status: 404 });
+            return NextResponse.json({ error: 'Client not found or already deleted.' }, { status: 404 });
         }
 
-        return NextResponse.json({ message: 'User status updated successfully.' }, { status: 200 });
+        return NextResponse.json({ message: 'Client status updated successfully.' }, { status: 200 });
     } catch (error) {
-        console.error("Error updating user status:", error);
-        return NextResponse.json({ error: 'Failed to update user status.' }, { status: 500 });
+        console.error("Error updating Client status:", error);
+        return NextResponse.json({ error: 'Failed to Delete Client .' }, { status: 500 });
     }
 }

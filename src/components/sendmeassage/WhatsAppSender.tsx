@@ -123,7 +123,7 @@ function WhatsAppSender() {
             htmlFor="to"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Recipient's WhatsApp Number
+            Recipients WhatsApp Number
           </label>
           <input
             id="to"

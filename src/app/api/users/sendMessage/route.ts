@@ -11,9 +11,9 @@ if (!accountSid || !authToken) {
 
 const client = twilio(accountSid, authToken);
 
-export const config = {
-    runtime: 'nodejs',
-};
+// export const config = {
+//     runtime: 'nodejs',
+// };
 
 export async function POST(req: Request) {
     try {

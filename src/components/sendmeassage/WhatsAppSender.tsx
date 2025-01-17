@@ -6,12 +6,12 @@ import axios from "axios";
 function WhatsAppSender() {
   const [to, setTo] = useState("");
   const [variables, setVariables] = useState("");
-  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaUrl, setMediaUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
 
-  const convertToJSON = (input) => {
+  const convertToJSON = (input: string) => {
     try {
       return JSON.parse(input);
     } catch {
@@ -19,8 +19,8 @@ function WhatsAppSender() {
     }
   };
 
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file size (10MB limit)
@@ -38,20 +38,21 @@ function WhatsAppSender() {
       formData.append("file", file);
 
       // Upload file to your server endpoint
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      const uploadResponse = await axios.post("/api/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log("the upload file:",uploadResponse)
-      if (!uploadResponse.ok) {
+
+      if (uploadResponse.status !== 200) {
         throw new Error(`Upload failed: ${uploadResponse.statusText}`);
       }
+     console.log("the publick url is:",uploadResponse)
+      const { url } = uploadResponse.data;
+      if (!url) {
+        throw new Error("Upload URL is missing in the response");
+      }
 
-      const data = await uploadResponse.json();
-      
       // Store the complete URL for the uploaded file
-      const fullUrl = `${window.location.origin}${data.url}`;
-      setMediaUrl(fullUrl);
+      setMediaUrl(url);
       setIsUploading(false);
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -75,21 +76,13 @@ function WhatsAppSender() {
       const messageData = {
         to,
         variables: convertToJSON(variables),
-        ...(mediaUrl && { mediaUrl }) // Only include mediaUrl if it exists
+        ...(mediaUrl && { mediaUrl }), // Only include mediaUrl if it exists
       };
 
       // Send the message
-      const response = await fetch("/api/users/sendMessage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(messageData),
-      });
+      const response = await axios.post("/api/users/sendMessage", messageData);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Message sent successfully!");
         // Clear form after successful send
         setMediaFile(null);
@@ -97,9 +90,9 @@ function WhatsAppSender() {
         setVariables("");
         setTo("");
       } else {
-        throw new Error(data.error || "Failed to send message");
+        throw new Error(response.data.error || "Failed to send message");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error:", err);
       setError(err.message || "An error occurred while sending the message.");
     }
@@ -140,12 +133,12 @@ function WhatsAppSender() {
             htmlFor="variables"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Template Variables (Enter Text or JSON)
+            Enter message
           </label>
           <textarea
             id="variables"
             className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
-            placeholder='Enter text or JSON, e.g., {"1": "value1", "2": "value2"}'
+            placeholder='Enter text to send to clients'
             value={variables}
             onChange={(e) => setVariables(e.target.value)}
           />

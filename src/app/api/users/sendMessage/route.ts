@@ -11,10 +11,6 @@ if (!accountSid || !authToken) {
 
 const client = twilio(accountSid, authToken);
 
-// export const config = {
-//     runtime: 'nodejs',
-// };
-
 export async function POST(req: Request) {
     try {
         // Parse the request body
@@ -30,30 +26,27 @@ export async function POST(req: Request) {
             );
         }
 
-        // Convert variables to a string if it's an object
-        let messageBody = '';
-        if (typeof variables === 'object') {
-            messageBody = JSON.stringify(variables);
+        // Extract and format the message body
+        let messageBody: string = 'Hello!'; // Default message
+        if (typeof variables === 'object' && variables.text) {
+            messageBody = variables.text; // Use only the 'text' value
         } else if (typeof variables === 'string') {
             messageBody = variables;
-        } else {
-            messageBody = 'Hello!'; // Default message if no variables provided
         }
 
         // Build the message options
         const messageOptions: any = {
             from: 'whatsapp:+14155238886', // Your Twilio WhatsApp number
-            to: `whatsapp:${+923032144362}`, // Format the recipient's number
+            to: `whatsapp:${to}`, // Format the recipient's number
             body: messageBody,
         };
 
         // Add media URL if provided
         if (mediaUrl) {
             messageOptions.mediaUrl = Array.isArray(mediaUrl) ? mediaUrl : [mediaUrl];
-            // messageOptions.mediaUrl="https://tse4.mm.bing.net/th?id=OIP.IbusXw6ZliqWPqRjqA3VKgHaE8&pid=Api&P=0&h=220"
         }
 
-        console.log('Sending message with options:', messageOptions);
+        // console.log('Sending message with options:', messageOptions);
 
         // Send the WhatsApp message using Twilio
         const message = await client.messages.create(messageOptions);
@@ -68,12 +61,12 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error('Error sending WhatsApp message:', error);
-        
+
         return NextResponse.json(
-            { 
+            {
                 success: false,
-                error: 'Failed to send message', 
-                details: error.message 
+                error: 'Failed to send message',
+                details: error.message,
             },
             { status: 500 }
         );
